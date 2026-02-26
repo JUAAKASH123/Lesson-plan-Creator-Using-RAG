@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PDF Teacher · production UI</title>
+    <!-- Font Awesome 6 (free) for crisp icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Markdown parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* ----- CSS variables (light, airy, production palette) ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f6f9fe;
+            color: #1a2b4c;
+            height: 100vh;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        /* main layout */
+        .app {
+            display: flex;
+            height: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 0 40px rgba(0, 40, 100, 0.08);
+        }
+
+        /* ===== SIDEBAR – clean, structured ===== */
+        .sidebar {
+            width: 320px;
+            background: #fafcff;
+            border-right: 1px solid #e2eaf8;
+            display: flex;
+            flex-direction: column;
+            padding: 28px 20px;
+            gap: 28px;
+        }
+
+        /* Logo area with BIGGER image */
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #dce5f4;
+        }
+
+        .logo-image {
+            width: 80px;
+            height: 80px;
+            background: #ffffff;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 25px -8px rgba(29,78,216,0.4);
+            border: 2px solid #cddfff;
+            padding: 6px;
+            overflow: hidden;
+        }
+
+        .logo-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text .line1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .logo-text .line2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            background: linear-gradient(145deg, #1d4ed8, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+        }
+
+        /* upload card */
+        .upload-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 24px 20px;
+            box-shadow: 0 12px 30px -8px rgba(0, 70, 150, 0.12);
+            border: 1px solid #e5edfb;
+            transition: box-shadow 0.2s;
+        }
+
+        .upload-card:hover {
+            box-shadow: 0 20px 35px -12px #1e3a8a30;
+        }
+
+        .upload-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .upload-header i {
+            font-size: 1.8rem;
+            color: #2563eb;
+            background: #e3eeff;
+            padding: 10px;
+            border-radius: 18px;
+        }
+
+        .upload-header span {
+            font-weight: 600;
+            color: #1a3b6e;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            width: 100%;
+            padding: 14px 16px;
+            background: #f1f7ff;
+            border: 2px dashed #a7c4ff;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            color: #1e3a8a;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .file-input-wrapper input[type="file"]::-webkit-file-upload-button {
+            visibility: hidden;
+        }
+
+        .file-input-wrapper input[type="file"]::before {
+            content: '📎 Choose PDF';
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            margin-right: 16px;
+            font-weight: 500;
+        }
+
+        .file-input-wrapper input[type="file"]:hover {
+            border-color: #2563eb;
+            background: #ecf3ff;
+        }
+
+        .upload-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border: none;
+            border-radius: 60px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px -5px #1d4ed8a0;
+            transition: all 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+            transform: scale(1.02);
+            box-shadow: 0 16px 25px -8px #1d4ed8;
+        }
+
+        .upload-btn i {
+            font-size: 1.2rem;
+        }
+
+        #uploadStatus {
+            margin-top: 16px;
+            font-size: 0.9rem;
+            color: #0369a1;
+            background: #e0f2fe;
+            padding: 8px 16px;
+            border-radius: 40px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* info footer */
+        .info-footer {
+            margin-top: auto;
+            background: #e8f0fe;
+            border-radius: 20px;
+            padding: 20px;
+            font-size: 0.95rem;
+            color: #25467a;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .info-footer p {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-footer i {
+            color: #2563eb;
+            width: 26px;
+            font-size: 1.3rem;
+        }
+
+        /* ===== CHAT SECTION ===== */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fbfdff;
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 20px 32px;
+            border-bottom: 1px solid #e7eefc;
+            background: #ffffffd0;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            color: #1e3a8a;
+        }
+
+        .chat-header i {
+            font-size: 1.5rem;
+            color: #2563eb;
+            background: #e1edff;
+            padding: 8px;
+            border-radius: 14px;
+        }
+
+        .chat-window {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 40px 20px 40px;
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* message bubbles */
+        .message {
+            max-width: 70%;
+            margin-bottom: 24px;
+            padding: 16px 22px;
+            border-radius: 26px;
+            line-height: 1.6;
+            font-size: 1rem;
+            box-shadow: 0 4px 18px rgba(0, 35, 70, 0.06);
+            position: relative;
+            animation: fadeInUp 0.3s ease;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: linear-gradient(145deg, #1d4ed8, #2563eb);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 8px;
+        }
+
+        .bot-message {
+            background: #ffffff;
+            color: #1a2b4c;
+            border: 1px solid #dae8ff;
+            align-self: flex-start;
+            border-bottom-left-radius: 8px;
+        }
+
+        /* LOADING SPINNER - REPLACES TYPING CURSOR */
+        .bot-message.loading {
+            position: relative;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bot-message.loading::before {
+            content: '';
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e3eeff;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .bot-message.loading::after {
+            content: 'Thinking...';
+            color: #2563eb;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* copy button */
+        .copy-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            background: white;
+            border-radius: 20px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            box-shadow: 0 4px 10px #bfd6ff;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.1s;
+            border: 1px solid #cddfff;
+            font-size: 1rem;
+        }
+
+        .bot-message:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.1);
+            background: #ebf3ff;
+        }
+
+        /* source styling (optional) */
+        .source-box {
+            background: #ecf5ff;
+            border-radius: 20px;
+            padding: 16px 22px;
+            margin: 8px 0 24px 40px;
+            border-left: 5px solid #2563eb;
+            font-size: 0.9rem;
+            color: #1e3f72;
+            box-shadow: 0 6px 14px #d4e3ff;
+            align-self: flex-start;
+            max-width: 80%;
+        }
+
+        /* markdown inside bot */
+        .bot-message h1, .bot-message h2, .bot-message h3 {
+            color: #0b2b5e;
+            margin: 0.6rem 0;
+        }
+        .bot-message code {
+            background: #eef3ff;
+            padding: 3px 8px;
+            border-radius: 10px;
+            color: #0047ab;
+            border: 1px solid #b9d3ff;
+        }
+        .bot-message pre {
+            background: #f0f5ff;
+            padding: 14px;
+            border-radius: 20px;
+            overflow-x: auto;
+        }
+
+        /* input area */
+        .input-area {
+            padding: 24px 32px 28px 32px;
+            background: #ffffff;
+            border-top: 2px solid #e5efff;
+            display: flex;
+            gap: 18px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            background: #f1f8ff;
+            border-radius: 40px;
+            border: 2px solid #d3e4ff;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            padding: 4px 4px 4px 24px;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px #d3e4ff;
+            background: #ffffff;
+        }
+
+        .input-wrapper textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            resize: none;
+            padding: 16px 8px 16px 0;
+            font-size: 1rem;
+            font-family: inherit;
+            color: #0f2b52;
+            outline: none;
+            line-height: 1.5;
+            max-height: 150px;
+        }
+
+        .input-wrapper textarea::placeholder {
+            color: #7795c0;
+        }
+
+        .send-btn {
+            background: #2563eb;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 60px;
+            color: white;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 8px 18px -4px #2563eb;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: #1d4ed8;
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 14px 26px -6px #1d4ed8;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e9f0fc;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #98b9f0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- SIDEBAR with BIGGER logo image -->
+    <aside class="sidebar">
+        <!-- Logo area with BIGGER image -->
+        <div class="logo-area">
+            <div class="logo-image">
+                <!-- YOUR IMAGE - now MUCH BIGGER and more visible -->
+                <img src="static/image_18876b9-Photoroom.png" alt="Teachers Lesson Plan Creator Logo">
+            </div>
+            <div class="logo-text">
+                <div class="line1">TEACHERS'</div>
+                <div class="line2">LESSON PLAN CREATOR</div>
+            </div>
+        </div>
+
+        <div class="upload-card">
+            <div class="upload-header">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Upload document</span>
+            </div>
+            <div class="file-input-wrapper">
+                <input type="file" id="pdfFile" accept=".pdf">
+            </div>
+            <button class="upload-btn" onclick="uploadPDF()">
+                <i class="fas fa-upload"></i> Upload PDF
+            </button>
+            <div id="uploadStatus">📎 no file selected</div>
+        </div>
+
+        <!-- INFO FOOTER - only showing hybrid RAG and teacher mode -->
+        <div class="info-footer">
+            <p><i class="fas fa-bolt"></i> hybrid RAG</p>
+            <p><i class="fas fa-chalkboard-teacher"></i> teacher mode</p>
+        </div>
+    </aside>
+
+    <!-- MAIN CHAT -->
+    <main class="chat-container">
+        <div class="chat-header">
+            <i class="fas fa-comment-dots"></i>
+            <span>Session: <span id="sessionBadge">—</span></span>
+        </div>
+
+        <div id="chatWindow" class="chat-window"></div>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea id="message" placeholder="Ask a question about your PDF..." rows="1"></textarea>
+            </div>
+            <button class="send-btn" id="sendButton" onclick="sendMsg()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </main>
+</div>
+
+<script>
+    (function() {
+        // ---------- STATE ----------
+        let sessionId = null;
+        let isLoading = false;
+        const chatWindow = document.getElementById('chatWindow');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const messageInput = document.getElementById('message');
+        const sessionBadge = document.getElementById('sessionBadge');
+        const sendButton = document.getElementById('sendButton');
+
+        // ---------- AUTO-RESIZE TEXTAREA ----------
+        function autoResize() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = (messageInput.scrollHeight) + 'px';
+        }
+        messageInput.addEventListener('input', autoResize);
+
+        // Enter to send (Shift+Enter = new line)
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+                e.preventDefault();
+                sendMsg();
+            }
+        });
+
+        // ---------- UPLOAD PDF ----------
+        window.uploadPDF = async function() {
+            const fileInput = document.getElementById('pdfFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a PDF file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadStatus.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> uploading...`;
+            try {
+                const res = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                sessionId = data.session_id;
+                sessionBadge.innerText = sessionId.substring(0,8) + '…';
+                uploadStatus.innerHTML = `✅ ready · ${file.name}`;
+            } catch (err) {
+                uploadStatus.innerHTML = `❌ upload failed`;
+                console.error(err);
+            }
+        };
+
+        // ---------- SEND MESSAGE (STREAM + LOADING SPINNER) ----------
+        window.sendMsg = async function() {
+            if (!sessionId) {
+                alert('Please upload a PDF first.');
+                return;
+            }
+
+            if (isLoading) return; // Prevent multiple simultaneous requests
+
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            // Disable input and button while loading
+            isLoading = true;
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            // 1. show user message
+            addUserMessage(text);
+            messageInput.value = '';
+            autoResize();
+
+            // 2. create bot message container with LOADING SPINNER (instead of cursor)
+            const botDiv = document.createElement('div');
+            botDiv.className = 'message bot-message loading';
+            chatWindow.appendChild(botDiv);
+            scrollToBottom();
+
+            // 3. fetch stream
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, message: text })
+                });
+
+                if (!res.body) throw new Error('No response body');
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let fullAnswer = '';
+
+                // Remove loading class when first chunk arrives
+                let firstChunk = true;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    fullAnswer += chunk;
+
+                    // Remove loading class and show actual content
+                    if (firstChunk) {
+                        botDiv.classList.remove('loading');
+                        firstChunk = false;
+                    }
+
+                    // render markdown incrementally
+                    botDiv.innerHTML = marked.parse(fullAnswer);
+                    scrollToBottom();
+                }
+
+                // streaming finished → add copy button
+                if (!firstChunk) {
+                    addCopyButton(botDiv, fullAnswer);
+                } else {
+                    // If no chunks received (empty response)
+                    botDiv.classList.remove('loading');
+                    botDiv.innerHTML = 'No response received.';
+                }
+
+            } catch (err) {
+                botDiv.classList.remove('loading');
+                botDiv.innerHTML = `❌ Error: ${err.message}`;
+                console.error(err);
+            } finally {
+                // Re-enable input and button
+                isLoading = false;
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        };
+
+        // helper: add user message
+        function addUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message user-message';
+            div.innerText = text;
+            chatWindow.appendChild(div);
+            scrollToBottom();
+        }
+
+        // copy button
+        function addCopyButton(botEl, content) {
+            const btn = document.createElement('span');
+            btn.className = 'copy-btn';
+            btn.innerHTML = '<i class="far fa-copy"></i>';
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(content);
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => btn.innerHTML = '<i class="far fa-copy"></i>', 1500);
+            };
+            botEl.appendChild(btn);
+        }
+
+        // scroll to bottom
+        function scrollToBottom() {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // optional: add source block (can be called from outside)
+        window.addSource = function(sourceData) {
+            const srcDiv = document.createElement('div');
+            srcDiv.className = 'source-box';
+            srcDiv.innerHTML = `📄 <b>Page ${sourceData.page}</b><br>${sourceData.content}`;
+            chatWindow.appendChild(srcDiv);
+            scrollToBottom();
+        };
+
+        // initial badge
+        sessionBadge.innerText = 'none';
+    })();
+</script>
+<!-- Make sure your image file is in the static folder: static/image_18876b9-Photoroom.png -->
+</body>
+</html>
