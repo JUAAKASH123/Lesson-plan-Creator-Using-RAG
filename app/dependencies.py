@@ -3,17 +3,12 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
-import uuid
+
 from typing import Dict
-import os
-from dotenv import load_dotenv
 
-api_key="AIzaSyBdeCxhknvMYooLgovmOQ3Fc3gTrUwSWvY"
 
-import os
-from dotenv import load_dotenv
-#load_dotenv()  # This searches for the .env file and loads it
-#api_key = os.getenv("GOOGLE_API_KEY")
+api_key=""
+
 
 active_session: Dict[str,dict]={}
 
